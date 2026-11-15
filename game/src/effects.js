@@ -7,7 +7,7 @@ const TRACERS = 40;
 const SPARKS = 320;
 const SMOKES = 10;
 
-export function createEffects(scene) {
+export function createEffects(scene, camera) {
   // Tracers: one LineSegments with a fixed vertex buffer; dead tracers collapse to a point.
   const tracerPos = new Float32Array(TRACERS * 6);
   const tracerGeo = new THREE.BufferGeometry();
@@ -41,7 +41,7 @@ export function createEffects(scene) {
   const muzzleMat = new THREE.MeshBasicMaterial({ color: 0xffd9a0, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
   const muzzles = [];
   for (let i = 0; i < 6; i += 1) {
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.34), muzzleMat.clone());
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(0.24, 0.24), muzzleMat.clone());
     m.visible = false;
     scene.add(m);
     muzzles.push({ mesh: m, life: 0 });
@@ -102,13 +102,15 @@ export function createEffects(scene) {
       tracerLife[i] = 0.055;
       tracerGeo.attributes.position.needsUpdate = true;
     },
-    muzzle(x, y, z, yaw, pitch) {
+    muzzle(x, y, z, size = 0.24) {
       const slot = muzzles[muzzleCursor];
       muzzleCursor = (muzzleCursor + 1) % muzzles.length;
       slot.mesh.position.set(x, y, z);
-      slot.mesh.rotation.set(pitch, yaw, Math.random() * 3, 'YXZ');
+      slot.mesh.scale.setScalar(size / 0.24);
+      slot.mesh.lookAt(camera.position); // a flash is a billboard: it faces whoever sees it
+      slot.mesh.rotateZ(Math.random() * 3);
       slot.mesh.visible = true;
-      slot.mesh.material.opacity = 0.95;
+      slot.mesh.material.opacity = 0.8;
       slot.life = 0.045;
       flash.position.set(x, y, z);
       flash.intensity = 60;
@@ -169,7 +171,7 @@ export function createEffects(scene) {
         if (slot.life <= 0) continue;
         slot.life -= dt;
         if (slot.life <= 0) slot.mesh.visible = false;
-        else slot.mesh.material.opacity = slot.life / 0.045;
+        else slot.mesh.material.opacity = (slot.life / 0.045) * 0.8;
       }
       if (fireLife > 0) {
         fireLife -= dt;

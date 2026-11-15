@@ -27,7 +27,7 @@ const shot = params.get('shot');
 const seed = shot ? (Number.parseInt(params.get('seed') ?? '1', 10) || 1) : (Date.now() % 2147483647);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -42,7 +42,7 @@ scene.add(camera);
 
 const state = createState(seed);
 const world = createWorld(scene);
-const fx = createEffects(scene);
+const fx = createEffects(scene, camera);
 const audio = createAudio();
 const chargeVisual = createChargeMesh(scene);
 initRounds(fx, audio, chargeVisual);
@@ -364,7 +364,7 @@ function runShot(name) {
     state.phaseTimer = 48;
     giveWeapon(p, 'rifle');
     place(p, 22.3, 11.8, 0);
-    aimAt(p, 26, 1.1, 15.5);
+    aimAt(p, 19.5, 1.2, 16.8); // toward the covering teammate, the site ring in frame
     state.charge.state = 'carried';
     state.charge.carrier = p;
     state.playerInteracting = true;

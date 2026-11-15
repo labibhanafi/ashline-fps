@@ -251,7 +251,7 @@ function stepCharge(state, dt) {
       ch.actor = defuser;
       if (ch.progress >= 1) {
         ch.state = 'defused';
-        if (FX) FX.explosion(ch.pos.x, 0.4, ch.pos.z); // a small safe-render pop, not the blast
+        if (AUDIO) AUDIO.interact();
         endRound(state, state.defendTeam, 'Charge defused', ECONOMY.winObjective);
         return;
       }

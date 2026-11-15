@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { BOT, PLAYER, WEAPONS, PALETTE } from './config.js';
 import { NODES, nearestNode, findPath, SITES } from './mapdata.js';
-import { lineOfSight, moveBody } from './combat.js';
+import { lineOfSight, moveBody, raycast } from './combat.js';
 import { eyeOf } from './player.js';
 import { giveWeapon, tryFire, startReload, throwGrenade } from './weapons.js';
 
@@ -311,9 +311,15 @@ function stepBot(state, c, fx, audio, dt) {
     c.pitch = Math.atan2(aimY - eye.y, dist) + b.aimJitter.y;
     if (now >= b.reactionAt && state.time >= c.blindUntil) {
       if (b.burstLeft > 0) {
-        // Walk the aim onto the target a little more with each burst round.
+        // Walk the aim onto the target a little more with each burst round — but never
+        // through a teammate: if the first body on the line is friendly, hold fire.
         c.yaw = turnToward(c.yaw, desiredYaw + b.aimJitter.x, dt * 9);
-        if (tryFire(state, c, fx, audio)) b.burstLeft -= 1;
+        const eye = eyeOf(c);
+        const cp = Math.cos(c.pitch);
+        const blocking = raycast(eye.x, eye.y, eye.z, -Math.sin(c.yaw) * cp, Math.sin(c.pitch), -Math.cos(c.yaw) * cp, dist + 2, state.combatants, c);
+        if (!(blocking && blocking.fighter && blocking.fighter.team === c.team)) {
+          if (tryFire(state, c, fx, audio)) b.burstLeft -= 1;
+        }
       } else if (now >= b.pauseUntil) {
         b.burstLeft = BOT.burstMin + Math.floor(state.rng() * (BOT.burstMax - BOT.burstMin));
         const err = BOT.aimErrorBase * (1 + dist * 0.03 + (t.speedNow || 0) * 0.25);

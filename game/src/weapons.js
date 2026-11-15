@@ -71,8 +71,18 @@ export function tryFire(state, c, fx, audio) {
   const eye = eyeOf(c);
   dirFrom(c.yaw, c.pitch, tmpDir);
   const spread = spreadFor(c, def);
-  const muzzle = { x: eye.x + tmpDir.x * 0.55, y: eye.y - 0.14 + tmpDir.y * 0.55, z: eye.z + tmpDir.z * 0.55 };
-  fx.muzzle(muzzle.x, muzzle.y, muzzle.z, c.yaw, c.pitch);
+  // The flash sits at the gun's real tip: for the player that is the view model's muzzle,
+  // low and right of the eye and most of a metre out, so the billboard stays a pop of
+  // light instead of a wall of it.
+  const reach = c.isPlayer ? 0.92 : 0.55;
+  const rightX = Math.cos(c.yaw) * (c.isPlayer ? 0.22 : 0);
+  const rightZ = -Math.sin(c.yaw) * (c.isPlayer ? 0.22 : 0);
+  const muzzle = {
+    x: eye.x + tmpDir.x * reach + rightX,
+    y: eye.y - (c.isPlayer ? 0.19 : 0.14) + tmpDir.y * reach,
+    z: eye.z + tmpDir.z * reach + rightZ,
+  };
+  fx.muzzle(muzzle.x, muzzle.y, muzzle.z, c.isPlayer ? 0.15 : 0.26);
   if (audio) audio.shot(def.soundPitch, c.isPlayer ? undefined : c.pos.x, c.isPlayer ? undefined : c.pos.z);
   state.noises.push({ x: c.pos.x, z: c.pos.z, radius: 34, team: c.team, at: state.time });
   if (c.isPlayer) {

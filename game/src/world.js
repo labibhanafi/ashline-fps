@@ -129,7 +129,7 @@ export function createWorld(scene) {
   scene.background = new THREE.Color(PALETTE.sky);
   scene.fog = new THREE.Fog(PALETTE.fog, 34, 110);
 
-  const hemi = new THREE.HemisphereLight(0x8ea6c4, 0x2c2f33, 0.75);
+  const hemi = new THREE.HemisphereLight(0x8ea6c4, 0x2c2f33, 0.92);
   scene.add(hemi);
   const sun = new THREE.DirectionalLight(0xffc98a, 1.5);
   sun.position.set(-38, 30, -20);
